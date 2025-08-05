@@ -1,5 +1,10 @@
 # DiariZen
-DiariZen is a speaker diarization toolkit driven by [AudioZen](https://github.com/haoxiangsnr/spiking-fullsubnet) and [Pyannote 3.1](https://huggingface.co/pyannote/speaker-diarization-3.1). 
+- This repository is a fork of [BUTSpeechFIT/DiariZen](https://github.com/BUTSpeechFIT/DiariZen), enhanced with Mamba and Samba architectures integrated into the speaker diarization pipeline.
+- DiariZen is a speaker diarization toolkit driven by [AudioZen](https://github.com/haoxiangsnr/spiking-fullsubnet) and [Pyannote 3.1](https://huggingface.co/pyannote/speaker-diarization-3.1).
+
+## Implementation Branches
+- `feature/add_mamba`: Implementation of Mamba architecture integration
+- `feature/add_samba`: Implementation of Samba architecture integration
 
 
 ## Installation
@@ -21,87 +26,39 @@ git submodule update
 ```
 
 ## Usage
-- For model training, see `recipes/diar_ssl/run_stage.sh`. 
-- For model pruning, see `recipes/diar_ssl_pruning/run_stage.sh`. 
-- For inference, our model supports for [Hugging Face](https://huggingface.co/BUT-FIT/diarizen-wavlm-large-s80-md) 🤗. See below: 
-```python
-from diarizen.pipelines.inference import DiariZenPipeline
+- For model training and inference, see `recipes/diar_ssl/run_stage.sh`.
 
-# load pre-trained model
-diar_pipeline = DiariZenPipeline.from_pretrained("BUT-FIT/diarizen-wavlm-large-s80-md")
+## Result
 
-# apply diarization pipeline
-diar_results = diar_pipeline('./example/EN2002a_30s.wav')
+### DER(Diarization Error Rate)
 
-# print results
-for turn, _, speaker in diar_results.itertracks(yield_label=True):
-    print(f"start={turn.start:.1f}s stop={turn.end:.1f}s speaker_{speaker}")
-# start=0.0s stop=2.7s speaker_0
-# start=0.8s stop=13.6s speaker_3
-# start=5.8s stop=6.4s speaker_0
-# ...
+| Model | AMI  | AISHELL-4  | AliMeeting  |
+|-------|----------|----------------|-----------------|
+| Conformer(Baseline) | 15.61% | 14.71% | 15.41% |
+| Mamba | **14.78%** | **8.50%** | **14.33%** |
+| Samba | 15.17% | 11.56% | 14.99% |
 
-# load pre-trained model and save RTTM result
-diar_pipeline = DiariZenPipeline.from_pretrained(
-        "BUT-FIT/diarizen-wavlm-large-s80-md",
-        rttm_out_dir='.'
-)
-# apply diarization pipeline
-diar_results = diar_pipeline('./example/EN2002a_30s.wav', sess_name='EN2002a')
-```
+**Settings:** Computed with a 0.25 s collar
 
+### Training-Time Efficiency
 
-## Benchmark 
-We train DiariZen models on a compound dataset composed of the datasets listed in the table below, followed by structured pruning to remove redundant parameters. For the results below: 
-- AISHELL-4 was converted to mono using `sox in.wav -c 1 out.wav`.
-- [NOTSOFAR-1](https://www.chimechallenge.org/challenges/chime8/task2/data) contains **only single-channel** recordings, e.g. `sc_plaza_0`, `sc_rockfall_0`.
-- Diarization Error Rate (DER) is evaluated **without** applying a collar.
-- **No domain adaptation** is applied to any individual dataset.
-- All experiments use the **same clustering hyperparameters** across datasets.
+| Model | Wall-Clock h | Avg GPU Memory GB | Peak GPU Memory GB | GPU Util % | Host RAM GB |
+|-------|--------------|-------------------|-------------------|------------|-------------|
+| Conformer | 24.3 | 7.9 | 21.1 | 83 | **25.6** |
+| Mamba | **13.1** | **6.3** | **17.5** | 85 | 68.7 |
+| Samba | 19.8 | 7.1 | 19.1 | **86** | 34 |
 
-| Dataset       | [Pyannote v3.1](https://github.com/pyannote/pyannote-audio) | [DiariZen-Base-s80](https://huggingface.co/BUT-FIT/diarizen-wavlm-base-s80-md) |[DiariZen-Large-s80](https://huggingface.co/BUT-FIT/diarizen-wavlm-large-s80-md) |
-|:---------------|:-----------:|:-----------:|:-----------:|
-| AMI-SDM           | 22.4      | 15.8 | 14.0 |
-| AISHELL-4     | 12.2      | 10.7 | 9.8 |
-| AliMeeting far    | 24.4      | 14.1 | 12.5 | 
-| NOTSOFAR-1    | -      | 20.3 |   17.9 |
-| MSDWild       | 25.3      | 17.4 | 15.6 |
-| DIHARD3 full      | 21.7      | 15.9 | 14.5 |
-| RAMC          | 22.2      | 11.4 | 11.0 |
-| VoxConverse   | 11.3      | 9.7 | 9.2 |
+**Settings:** Single A100-80 GB GPU, batch size 64
 
-## Updates
-2025-06-03: Uploaded structured pruning recipes, released new pre-trained models, and updated multiple benchmark results.
+### Inference Speed
 
-## Citations
-If you found this work helpful, please consider citing
-```
-@inproceedings{han2025leveraging,
-  title={Leveraging self-supervised learning for speaker diarization},
-  author={Han, Jiangyu and Landini, Federico and Rohdin, Johan and Silnova, Anna and Diez, Mireia and Burget, Luk{\'a}{\v{s}}},
-  booktitle={Proc. ICASSP},
-  year={2025}
-}
+| Model | Mean time | RTF | Speed (× real time) |
+|-------|-----------|-----|---------------------|
+| Conformer | 2.37 | 0.0395 | 25.3 × |
+| Mamba | **2.31** | **0.0385** | **26.0 ×** |
+| Samba | 2.32 | 0.0386 | 25.9 × |
 
-@article{han2025fine,
-  title={Fine-tune Before Structured Pruning: Towards Compact and Accurate Self-Supervised Models for Speaker Diarization},
-  author={Han, Jiangyu and Landini, Federico and Rohdin, Johan and Silnova, Anna and Diez, Mireia and Cernocky, Jan and Burget, Lukas},
-  journal={arXiv preprint arXiv:2505.24111},
-  year={2025}
-}
-
-@article{han2025efficient,
-  title={Efficient and Generalizable Speaker Diarization via Structured Pruning of Self-Supervised Models},
-  author={Han, Jiangyu and P{\'a}lka, Petr and Delcroix, Marc and Landini, Federico and Rohdin, Johan and Cernock{\`y}, Jan and Burget, Luk{\'a}{\v{s}}},
-  journal={arXiv preprint arXiv:2506.18623},
-  year={2025}
-}
-
-```
-
+**Settings:** `batch = 1`, `fp32 inference`, `PyTorch 2.1.1`, `cuDNN 8.9.2`
 
 ## License
 This repository under the [MIT license](https://github.com/BUTSpeechFIT/DiariZen/blob/main/LICENSE).
-
-## Contact
-If you have any comment or question, please contact ihan@fit.vut.cz
