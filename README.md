@@ -7,7 +7,7 @@
 - `feature/add_samba`: Implementation of Samba architecture integration
 
 
-## Installation
+## Installation and Model Training and Infererence
 ```
 # create virtual python environment
 conda create --name diarizen python=3.10
@@ -23,10 +23,11 @@ cd pyannote-audio && pip install -e .[dev,testing]
 # install dscore
 git submodule init
 git submodule update
-```
 
-## Usage
-- For model training and inference, see `recipes/diar_ssl/run_stage.sh`.
+# For model training and inference
+bash recipes/diar_ssl/run_stage.sh
+
+```
 
 ## Result
 
