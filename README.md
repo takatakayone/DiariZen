@@ -7,14 +7,14 @@
 - `feature/add_samba`: Implementation of Samba architecture integration
 
 ## Encoder Implementation
-- Conformer(baseline): https://github.com/takatakayone/DiariZen/blob/main/diarizen/models/module/conformer.py
 - Mamba: https://github.com/takatakayone/DiariZen/blob/main/diarizen/models/module/mamba_encoder.py
 - Samba: https://github.com/takatakayone/DiariZen/blob/main/diarizen/models/module/samba_encoder.py
+- Conformer(baseline): https://github.com/takatakayone/DiariZen/blob/main/diarizen/models/module/conformer.py
 
 ## Hyperparameter Settings for WavLM+Encoders
-- WavLM + Conformer(baseline): https://github.com/takatakayone/DiariZen/blob/main/recipes/diar_ssl/conf/wavlm_frozen_conformer.toml
 - WavLM + Mamba: https://github.com/takatakayone/DiariZen/blob/main/recipes/diar_ssl/conf/wavlm_mamba.toml
 - WavLM + Samba: https://github.com/takatakayone/DiariZen/blob/main/recipes/diar_ssl/conf/wavlm_samba.toml
+- WavLM + Conformer(baseline): https://github.com/takatakayone/DiariZen/blob/main/recipes/diar_ssl/conf/wavlm_frozen_conformer.toml
 
 ## Installation and Model Training and Infererence
 ```
